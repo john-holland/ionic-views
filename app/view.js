@@ -107,10 +107,10 @@ export class View {
   render(){
     if( display.on ){
       for( let subview of this._subviews ){
-        subview.render();
+        subview.render(...arguments);
       }
 
-      this.onRender();
+      this.onRender(...arguments);
     }
   }
   
@@ -121,15 +121,18 @@ export class View {
 export class Application extends View {
   // Current application screen.
   set screen( view ){
-    if( this._screen ) this.remove( this._screen );
+    if( this._screen && view.name != this._screen.name ) this.remove( this._screen );
 
     // Poke the display so it will be on after the screen switch...
     display.poke();
+    if (view) view.application = this;
 
     this.insert( this._screen = view ).render();
   }
   
   get screen(){ return this._screen; }
+  
+  onStart(){}
   
   // Switch the screen
   static switchTo( screenName ){
@@ -145,9 +148,11 @@ export class Application extends View {
     const app = Application.instance = new this();
     app.mount();
     
+    app.onStart();
+    
     // Refresh UI when the screen in on.
     display.onchange = () => {
-      app.render();
+      app.render(...arguments);
     }
   }
 }
